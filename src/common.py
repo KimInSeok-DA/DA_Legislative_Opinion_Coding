@@ -42,3 +42,15 @@ def assembly_key() -> str:
     if not key:
         raise SystemExit("ASSEMBLY_API_KEY가 .env에 없습니다")
     return key
+
+
+PAL = "https://pal.assembly.go.kr"
+
+
+def csrf_token(html: str) -> str:
+    """국회입법예고 페이지의 meta _csrf 값. POST 요청에 같이 보낸다."""
+    import re
+    m = re.search(r'<meta name="_csrf" content="([^"]+)"', html)
+    if not m:
+        raise RuntimeError("CSRF 토큰을 찾지 못했습니다")
+    return m.group(1)
