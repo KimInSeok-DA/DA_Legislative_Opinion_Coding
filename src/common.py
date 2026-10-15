@@ -1,5 +1,6 @@
 """수집 공통: 경로, .env, 요청 간격을 지키는 HTTP 세션."""
 import os
+import re
 import time
 from pathlib import Path
 
@@ -31,9 +32,10 @@ def fetch(method: str, url: str, **kwargs) -> requests.Response:
             r = _session.request(method, url, timeout=30, **kwargs)
             r.raise_for_status()
             return r
-        except requests.RequestException:
+        except requests.RequestException as e:
             if attempt == 2:
-                raise
+                # requests 오류 메시지에는 URL(KEY=인증키 포함)이 들어간다 → 가리고 다시 던진다
+                raise RuntimeError(re.sub(r"KEY=[^&\s]+", "KEY=***", str(e))) from None
             time.sleep(3 * (attempt + 1))
 
 
@@ -49,7 +51,6 @@ PAL = "https://pal.assembly.go.kr"
 
 def csrf_token(html: str) -> str:
     """국회입법예고 페이지의 meta _csrf 값. POST 요청에 같이 보낸다."""
-    import re
     m = re.search(r'<meta name="_csrf" content="([^"]+)"', html)
     if not m:
         raise RuntimeError("CSRF 토큰을 찾지 못했습니다")
