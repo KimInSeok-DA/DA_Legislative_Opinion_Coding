@@ -21,7 +21,8 @@
 
 7단계 표본 끝(브랜치 `review/sample`, 커밋 전): `docs/의사결정/1015_04_검수_표본과_같은_문안.md` — 같은 문안은 3글자 조각 자카드 0.6으로 묶어 묶음당 1건, 코드북을 만든 100건의 묶음은 통째로 제외(`src/dedup.py`, `src/review_sample.py`)
 
-1. **사용자 라벨**: `data/labels/review_sheet.csv` 100건 + `rule_sheet.csv` 20건에 코드북 v1로 찬반(`pro`/`con`/`unknown`)·주제(9개 코드)·메모. 개선/평가 구분은 `review_key.csv`에만 있으니 라벨 전에 열지 않는다
+1. **사용자 라벨**(라벨 화면 `streamlit run src/label_app.py`, 브랜치 `label/app` 커밋 전): `data/labels/review_sheet.csv` 100건 + `rule_sheet.csv` 20건에 코드북 v1로 찬반(`pro`/`con`/`unknown`)·주제(9개 코드)·메모. 개선/평가 구분은 `review_key.csv`에만 있으니 라벨 전에 열지 않는다
+   - 건별 라벨 시간 `data/labels/label_times.csv`(이전으로 돌아가 고치면 같은 id가 여러 줄 → id별로 더한다)
 2. 8 LLM 분류: 출력 JSON = 찬반·주제·근거 문장·확신도. 모델은 공식 가격표 확인 후 gpt-5-mini/nano 비교, 표본 100건 먼저, 전체 전 비용 알림. 규칙 쪽 573건의 찬반은 낱말 규칙
 3. 9 일치율: 찬반·주제 따로 정확도·κ·혼동표, 주제는 `no_reason` 뺀 결과도, **묶음 크기 가중 일치율**(`data/interim/groups.csv`)도 보조로. 규칙 쪽 20건 → 1015_02 바꾸는 조건 → 코드북 v2(개선용 50) → 평가용 50으로 v1·v2 비교
 4. 10 전체 분류·SQLite → 11 대시보드·보고서·README
