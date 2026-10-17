@@ -25,6 +25,12 @@ STANCES = {"pro": "찬성", "con": "반대", "unknown": "불명"}
 CONF = {"high": "높음", "medium": "중간", "low": "낮음", "rule": "규칙(15자 미만)"}
 BILLS = ["국가보안법 폐지", "소득세법", "공인중개사법", "정보통신망법"]
 BLUE, ORANGE, GRAY = "#2a78d6", "#eb6834", "#8a8984"  # 찬반은 찬성·반대 두 색 + 불명은 중립 회색
+def theme_colors() -> tuple[str, str]:
+    """(보조 글자색, 화면 배경색). 막대 끝 숫자와 칸 사이 틈을 밝은·어두운 화면에 맞춘다."""
+    dark = getattr(getattr(st.context, "theme", None), "type", None) == "dark"
+    return ("#c3c2b7", "#0e1117") if dark else ("#52514e", "#ffffff")
+
+
 SOURCE = "출처: 열린국회정보(진행중/종료된 입법예고), 국회입법예고, 조회 2026-10-15"
 
 
@@ -63,13 +69,14 @@ def tab_overview(ops, agree, runs):
     nr = (ops.topic == "no_reason").mean()
     llm_nr = (ops[ops.route == "llm"].topic == "no_reason").mean()
     st.markdown(
-        f"- 공개 의견의 **{nr:.0%}**가 이유 없이 찬반만 밝혔다. 15자 미만은 모두 그렇고, 15자 이상에서도 {llm_nr:.0%}\n"
+        f"- 이유 없이 찬반만 밝힌 의견: **{nr:.0%}** (15자 미만은 모두, 15자 이상에서도 {llm_nr:.0%})\n"
         f"- 이유가 있는 의견에서는 법안마다 주된 주제가 다르다(법안별 결과 탭)\n"
         f"- LLM이 확신도 '낮음·중간'으로 낸 의견은 {(ops.confidence.isin(['low', 'medium'])).sum():,}건 — 사람이 다시 볼 후보(검토 탭)")
     st.caption(SOURCE)
 
 
 def tab_bills(ops):
+    INK, SURFACE = theme_colors()
     st.markdown("##### 주제 비율")
     reason_only = st.toggle("이유 없는 찬반 빼고 보기", value=False)
     data = ops[ops.topic != "no_reason"] if reason_only else ops
@@ -77,12 +84,12 @@ def tab_bills(ops):
     order = [TOPICS[k] for k in TOPICS if not (reason_only and k == "no_reason")]
     bars = alt.Chart(t).mark_bar(cornerRadiusEnd=4, height={"band": 0.7}).encode(
         y=alt.Y("주제:N", sort=order, title=None),
-        x=alt.X("비율:Q", axis=alt.Axis(format="%", grid=True), title=None, scale=alt.Scale(domain=[0, 1])),
+        x=alt.X("비율:Q", axis=alt.Axis(format="%", grid=True, tickCount=3), title=None, scale=alt.Scale(domain=[0, 1])),
         color=alt.condition(alt.datum.주제 == "이유 없는 찬반", alt.value(GRAY), alt.value(BLUE)),
         tooltip=["법안", "주제", "의견 수", alt.Tooltip("비율:Q", format=".1%")],
     )
     text = bars.mark_text(align="left", dx=4, fontSize=11).encode(
-        text=alt.Text("비율:Q", format=".0%"), color=alt.value("#52514e"))
+        text=alt.Text("비율:Q", format=".0%"), color=alt.value(INK))
     st.altair_chart((bars + text).properties(width=200, height=260)
                     .facet(column=alt.Column("법안:N", sort=BILLS, title=None))
                     .configure_view(stroke=None), width="content")
@@ -90,14 +97,14 @@ def tab_bills(ops):
 
     st.markdown("##### 찬반")
     s = share_table(ops, "찬반")
-    chart = alt.Chart(s).mark_bar(height={"band": 0.6}, stroke="white", strokeWidth=2).encode(
-        y=alt.Y("법안:N", sort=BILLS, title=None),
-        x=alt.X("비율:Q", stack="normalize", axis=alt.Axis(format="%"), title=None),
+    chart = alt.Chart(s).mark_bar(size=26, stroke=SURFACE, strokeWidth=2).encode(
+        y=alt.Y("법안:N", sort=BILLS, title=None, axis=alt.Axis(labelLimit=200)),
+        x=alt.X("비율:Q", stack="normalize", axis=alt.Axis(format="%", tickCount=5), title=None),
         color=alt.Color("찬반:N", scale=alt.Scale(domain=list(STANCES.values()), range=[BLUE, ORANGE, GRAY]),
                         legend=alt.Legend(orient="top", title=None)),
         order=alt.Order("찬반:N", sort="descending"),
         tooltip=["법안", "찬반", "의견 수", alt.Tooltip("비율:Q", format=".1%")],
-    ).properties(height=180)
+    ).properties(height=4 * 44)
     st.altair_chart(chart, width="stretch")
 
     with st.expander("표로 보기"):
@@ -109,6 +116,7 @@ def tab_bills(ops):
 
 
 def tab_quality(human, agree, selfa, llm2):
+    INK, SURFACE = theme_colors()
     st.markdown("##### 코드북 버전별 주제 일치율 (새 평가 표본 50건, 원래 라벨)")
     v = agree[(agree.split == "eval2") & (agree.measure == "topic")].drop_duplicates("codebook", keep="last")
     human_ref = selfa[(selfa.pair == "사람1-사람2") & (selfa.measure == "topic")].iloc[0]
@@ -116,14 +124,14 @@ def tab_quality(human, agree, selfa, llm2):
                    pd.DataFrame([{"항목": "사람 자기 일치도(처음 평가용)", "종류": "사람", "accuracy": human_ref.accuracy,
                                   "kappa": human_ref.kappa, "n": human_ref.n}])])
     order = ["LLM 코드북 v1", "LLM 코드북 v2", "LLM 코드북 v3", "사람 자기 일치도(처음 평가용)"]
-    base = alt.Chart(v).encode(y=alt.Y("항목:N", title=None, sort=order))
+    base = alt.Chart(v).encode(y=alt.Y("항목:N", title=None, sort=order, axis=alt.Axis(labelLimit=240)))
     bars = base.mark_bar(cornerRadiusEnd=4, height={"band": 0.6}).encode(
-        x=alt.X("accuracy:Q", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format=".0%"), title=None),
+        x=alt.X("accuracy:Q", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format=".0%", tickCount=5), title=None),
         color=alt.Color("종류:N", scale=alt.Scale(domain=["LLM", "사람"], range=[BLUE, GRAY]), legend=None),
         tooltip=["항목", alt.Tooltip("accuracy", title="정확도", format=".2f"),
                  alt.Tooltip("kappa", title="κ", format=".2f"), alt.Tooltip("n", title="건수")])
     labels = base.mark_text(align="left", dx=4).encode(x="accuracy:Q", text=alt.Text("accuracy:Q", format=".2f"),
-                                                       color=alt.value("#52514e"))
+                                                       color=alt.value(INK))
     st.altair_chart((bars + labels).properties(height=190), width="stretch")
     st.caption("50건에서 정확도 0.70의 95% 구간은 0.57～0.83 — 버전 차이(2～4건)는 우연과 구분되지 않는다. "
                "사람 자기 일치도는 처음 평가용 50건을 하루 뒤 다시 단 결과(기억 효과로 높게 나왔을 수 있음)")
@@ -140,7 +148,8 @@ def tab_quality(human, agree, selfa, llm2):
     rows.append({"평가": "사람 자기 일치도(처음 평가용)", "코드북": "v1→v2", "찬반": s.loc["stance", "accuracy"],
                  "주제": s.loc["topic", "accuracy"], "주제 κ": s.loc["topic", "kappa"],
                  "주제(이유 없는 찬반 뺀 것)": s.loc["topic_excl_no_reason", "accuracy"], "이유 있음·없음": None})
-    st.dataframe(pd.DataFrame(rows).set_index("평가"), width="stretch")
+    summary = pd.DataFrame(rows).set_index("평가")
+    st.dataframe(summary.style.format("{:.2f}", subset=list(summary.columns[1:]), na_rep="—"), width="stretch")
 
     h = human[human.split == "eval2"].assign(id=lambda d: d.id)
     df = h.merge(llm2[["id", "topic", "confidence"]], on="id", suffixes=("_h", "_m"))
@@ -151,9 +160,9 @@ def tab_quality(human, agree, selfa, llm2):
         c["확신도"] = c.confidence.map(CONF)
         ch = alt.Chart(c).mark_bar(cornerRadiusEnd=4, color=BLUE, height={"band": 0.6}).encode(
             y=alt.Y("확신도:N", sort=["높음", "중간", "낮음"], title=None),
-            x=alt.X("mean:Q", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format=".0%"), title=None),
+            x=alt.X("mean:Q", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format=".0%", tickCount=5), title=None),
             tooltip=["확신도", alt.Tooltip("mean:Q", title="정확도", format=".2f"), alt.Tooltip("size:Q", title="건수")])
-        t = ch.mark_text(align="left", dx=4, color="#52514e").encode(
+        t = ch.mark_text(align="left", dx=4, color=INK).encode(
             text=alt.Text("label:N")).transform_calculate(label="format(datum.mean, '.2f') + ' (' + datum.size + '건)'")
         st.altair_chart((ch + t).properties(height=140), width="stretch")
         st.caption("확신도 '높음'만 그대로 쓰고 나머지를 사람이 보는 운영이 가능하다는 근거")
@@ -162,7 +171,7 @@ def tab_quality(human, agree, selfa, llm2):
         m = pd.crosstab(df.topic_h.map(TOPICS), df.topic_m.map(TOPICS)).stack().rename("n").reset_index()
         m.columns = ["사람", "LLM", "n"]
         m = m[m.n > 0]
-        heat = alt.Chart(m).mark_rect(stroke="white", strokeWidth=2).encode(
+        heat = alt.Chart(m).mark_rect(stroke=SURFACE, strokeWidth=2).encode(
             x=alt.X("LLM:N", title=None, sort=list(TOPICS.values()), axis=alt.Axis(labelAngle=-40)),
             y=alt.Y("사람:N", title=None, sort=list(TOPICS.values())),
             color=alt.Color("n:Q", scale=alt.Scale(scheme="blues"), legend=None),
