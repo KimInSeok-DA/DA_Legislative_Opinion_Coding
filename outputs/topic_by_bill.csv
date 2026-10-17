@@ -1,0 +1,31 @@
+﻿bill,topic,n,share
+공인중개사법,burden,3,0.006
+공인중개사법,effect,68,0.147
+공인중개사법,fairness,66,0.143
+공인중개사법,no_reason,315,0.68
+공인중개사법,other,1,0.002
+공인중개사법,politics,6,0.013
+공인중개사법,rights,2,0.004
+공인중개사법,security,1,0.002
+공인중개사법,unclear,1,0.002
+국가보안법 폐지,effect,8,0.018
+국가보안법 폐지,no_reason,187,0.413
+국가보안법 폐지,other,2,0.004
+국가보안법 폐지,politics,28,0.062
+국가보안법 폐지,rights,4,0.009
+국가보안법 폐지,security,223,0.492
+국가보안법 폐지,unclear,1,0.002
+소득세법,burden,32,0.072
+소득세법,effect,22,0.049
+소득세법,fairness,91,0.204
+소득세법,no_reason,219,0.49
+소득세법,politics,11,0.025
+소득세법,rights,69,0.154
+소득세법,security,2,0.004
+소득세법,unclear,1,0.002
+정보통신망법,effect,12,0.025
+정보통신망법,no_reason,310,0.646
+정보통신망법,other,1,0.002
+정보통신망법,politics,22,0.046
+정보통신망법,rights,132,0.275
+정보통신망법,security,3,0.006

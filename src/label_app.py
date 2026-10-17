@@ -20,7 +20,9 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent.parent
 LABELS = Path(os.getenv("LABEL_DIR", ROOT / "data" / "labels"))  # 시험할 때만 다른 폴더로
 CODEBOOK = ROOT / "docs" / "코드북.md"
-SHEETS = {"검수 표본 (100건)": "review_sheet.csv", "규칙 쪽 (20건)": "rule_sheet.csv"}
+# 다시 달기: 평가용 50건을 순서를 섞고 번호를 새로 붙인 시트(사람 자기 일치도, 의사결정 1017_01). 이전 라벨은 보이지 않는다
+SHEETS = {"검수 표본 (100건)": "review_sheet.csv", "규칙 쪽 (20건)": "rule_sheet.csv",
+          "다시 달기 (50건)": "recheck_sheet.csv", "새 평가 (50건)": "eval2_sheet.csv"}
 TIMES = LABELS / "label_times.csv"
 BILL_NOS = {"국가보안법 폐지": "2214785", "소득세법": "2218197", "공인중개사법": "2211676", "정보통신망법": "2208271"}
 
