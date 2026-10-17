@@ -1,0 +1,10 @@
+﻿pair,measure,n,accuracy,kappa,run_at,model,codebook
+사람1-사람2,stance,50,1.0,1.0,2026-10-17T00:33:28,sonnet,v2
+사람1-사람2,topic,50,0.9,0.869,2026-10-17T00:33:28,sonnet,v2
+사람1-사람2,topic_excl_no_reason,31,0.839,0.793,2026-10-17T00:33:28,sonnet,v2
+LLM-사람1,stance,50,1.0,1.0,2026-10-17T00:33:28,sonnet,v2
+LLM-사람1,topic,50,0.8,0.746,2026-10-17T00:33:28,sonnet,v2
+LLM-사람1,topic_excl_no_reason,31,0.742,0.676,2026-10-17T00:33:28,sonnet,v2
+LLM-사람2,stance,50,1.0,1.0,2026-10-17T00:33:28,sonnet,v2
+LLM-사람2,topic,50,0.82,0.769,2026-10-17T00:33:28,sonnet,v2
+LLM-사람2,topic_excl_no_reason,30,0.8,0.744,2026-10-17T00:33:28,sonnet,v2

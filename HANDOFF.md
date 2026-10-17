@@ -1,31 +1,29 @@
 # HANDOFF
 
-## 현재 상태 (2026-10-15)
+## 현재 상태 (2026-10-17)
 
-- 1～6단계 끝, PR #1～#5 머지. 로컬은 `main`만 있음(원격 `origin` = GitHub `KimInSeok-DA/DA_Legislative_Opinion_Coding`)
-- 환경: Python 3.14.5 `.venv`, `requirements.txt`. `.env`의 두 키(열린국회정보·OpenAI) 동작 확인(10-15)
-- 작업 기간 10-18～10-21(일정보다 앞서 있음)
+- 1～9단계 끝, 10단계(전체 분류) 진행 중. PR #1～#7 머지. 브랜치 `classify/llm` 커밋 전
+- 환경: Python 3.14.5 `.venv`, `requirements.txt`. 분류는 **Claude Code 명령줄 `claude -p`(구독 안, 추가 결제 없음) + Sonnet**(의사결정 1016_01). OpenAI 키는 크레딧이 없어 쓰지 않음
 
 | 단계 | 결과 | 근거 문서 |
 |---|---|---|
 | 1 법안 목록 | 20,274건 `data/raw/bills.csv` | 작업일지 10-15 |
-| 3 법안 고르기 | 2214785 국가보안법 폐지(법사)·2218197 소득세법(재경)·2211676 공인중개사법(국토)·2208271 정보통신망법(과방), 법안당 의견 번호 무작위 500건 | `docs/의사결정/1015_01_법안_선택과_표본.md` |
-| 4 의견 수집 | 2,000/2,000 `data/raw/opinions.jsonl`(허용 필드만), 공개 1,843 · 비공개 153 · 지워진 번호 4. 중복·개인정보 패턴 0 | 1015_01 결과란, `outputs/collection_summary.csv` |
-| 5 정제 | `src/clean.py` → `data/interim/opinions_clean.csv`. 분류 텍스트 = 제목+본문(제목이 본문에 있으면 본문만), **15자 미만 573건은 규칙으로 "이유 없는 찬반"**, 15자 이상 **1,270건(고유 1,161)이 LLM 대상** | `docs/의사결정/1015_02_짧은_의견_기준.md` |
-| 6 코드북 v1 | 찬반 칸(`pro`·`con`·`unknown`) + 법안 공통 주제 9개(`rights` `security` `burden` `fairness` `effect` `politics` `other` `no_reason` `unclear`), 단일 라벨. 코드북을 만들 때 읽은 100건(`src/codebook_read.py`)은 검수 표본에서 뺀다 | `docs/코드북.md`, `docs/의사결정/1015_03_코드북_v1.md` |
-| 7 검수 표본 | 100건(개선 50 / 평가 50) + 규칙 쪽 20건, 라벨 시트 `data/labels/` | `docs/의사결정/1015_04_검수_표본과_같은_문안.md` |
+| 3 법안 고르기 | 2214785 국가보안법 폐지·2218197 소득세법·2211676 공인중개사법·2208271 정보통신망법, 법안당 의견 번호 무작위 500건 | 1015_01 |
+| 4 의견 수집 | 2,000/2,000, 공개 1,843 · 비공개 153 · 지워진 번호 4 | 1015_01, `outputs/collection_summary.csv` |
+| 5 정제 | 15자 미만 573건 규칙 "이유 없는 찬반", 15자 이상 1,270건(고유 1,161) LLM. 규칙 쪽 20건 확인으로 **15자 유지** | 1015_02 |
+| 6～7 코드북·표본 | 코드북 v1, 검수 표본 100(개선 50/평가 50) + 규칙 쪽 20, 사용자 라벨 완료 | 1015_03, 1015_04 |
+| 8 LLM 분류 | `src/classify.py`(`claude -p`, JSON 스키마), 결과 `outputs/raw/sample_<모델>_<코드북>.jsonl`, 토큰 `outputs/llm_runs.csv` | 1016_01 |
+| 9 일치율 | `src/agreement.py`, `src/self_agreement.py` → `outputs/agreement.csv`, `outputs/self_agreement.csv`. **최종 코드북 v3, 새 평가 표본 50건: 찬반 1.00, 주제 0.70(κ 0.61)**. 처음 평가용 v2 0.80, 사람 자기 일치도 0.90 | 1017_01, 1017_02 |
+| 10 전체 분류 | Sonnet + v3로 LLM 쪽 고유 1,161건(`outputs/raw/all_sonnet_v3.jsonl`), 15자 미만 573건 찬반 낱말 규칙(사람 20건과 20/20) → `src/build_db.py` → `data/interim/coding.db`, `outputs/topic_by_bill.csv`, `outputs/stance_by_bill.csv` | 작업일지 10-17 |
 
-`opinions_clean.csv` 열: `BILL_NO, opnNo, opnRgDt, inst_yn, text, text_len, route(llm/rule), dup_n(법안 안 같은 텍스트 수), pii_removed_clean`
+- 개선용 라벨은 사용자가 다시 읽고 13칸 고침(`data/labels/relabel_log.csv`, 원본 `review_sheet_original.csv`). 고친 개선용으로 낸 일치율은 성능 지표로 쓰지 않는다. **평가용·새 평가 라벨은 고치지 않는다**
+- 지난 코드북은 `docs/코드북_버전/`(v1·v2·v3). `src/classify.py --codebook v2 --sheet eval2`처럼 같은 표본에 지난 버전을 돌린다
+- 분류는 `claude -p`를 의견마다 부른다(구독 안, 사용량 한도 있음). 결과가 빈 건은 넘기고 다시 실행하면 그 건만 다시 시도
 
 ## 다음 작업
 
-7단계 표본 끝(브랜치 `review/sample`, 커밋 전): `docs/의사결정/1015_04_검수_표본과_같은_문안.md` — 같은 문안은 3글자 조각 자카드 0.6으로 묶어 묶음당 1건, 코드북을 만든 100건의 묶음은 통째로 제외(`src/dedup.py`, `src/review_sample.py`)
-
-1. **사용자 라벨**(라벨 화면 `streamlit run src/label_app.py`, 브랜치 `label/app` 커밋 전): `data/labels/review_sheet.csv` 100건 + `rule_sheet.csv` 20건에 코드북 v1로 찬반(`pro`/`con`/`unknown`)·주제(9개 코드)·메모. 개선/평가 구분은 `review_key.csv`에만 있으니 라벨 전에 열지 않는다
-   - 건별 라벨 시간 `data/labels/label_times.csv`(이전으로 돌아가 고치면 같은 id가 여러 줄 → id별로 더한다)
-2. 8 LLM 분류: 출력 JSON = 찬반·주제·근거 문장·확신도. 모델은 공식 가격표 확인 후 gpt-5-mini/nano 비교, 표본 100건 먼저, 전체 전 비용 알림. 규칙 쪽 573건의 찬반은 낱말 규칙
-3. 9 일치율: 찬반·주제 따로 정확도·κ·혼동표, 주제는 `no_reason` 뺀 결과도, **묶음 크기 가중 일치율**(`data/interim/groups.csv`)도 보조로. 규칙 쪽 20건 → 1015_02 바꾸는 조건 → 코드북 v2(개선용 50) → 평가용 50으로 v1·v2 비교
-4. 10 전체 분류·SQLite → 11 대시보드·보고서·README
+1. 10 마무리: 전체 분류 확인(`other` 10% 넘는지, 확신도 분포) → `src/build_db.py`
+2. 11 대시보드(Streamlit, 검수 탭 통합 가능)·보고서·README: 주 지표 0.70(95% 구간 0.57～0.83), 사람 자기 일치도 0.90, 확신도로 사람 검토 대상 고르기, "LLM이 코드북을 사람보다 일관되게 적용" 발견
 
 ## 진행 방식 (사용자 선호)
 
@@ -42,5 +40,4 @@
 
 ## 열린 결정
 
-- 분류 모델(비용·JSON 출력 지원 확인 후) — 8단계
-- 규칙 쪽 573건에 찬반을 붙이는 낱말 규칙 — 8단계
+- 없음
