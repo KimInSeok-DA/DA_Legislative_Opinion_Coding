@@ -23,6 +23,25 @@
 - LLM 확신도가 "높음"인 의견은 사람과 잘 맞고(0.86～1.00), "낮음"인 의견은 사람도 다시 달 때 흔들렸다(자기 일치도 0.50) → 확신도로 사람이 다시 볼 의견을 고를 수 있다
 - 코드북 v1 → v3의 차이는 50건 표본에서 우연과 구분되지 않았다
 
+## 대시보드
+
+`streamlit run src/dashboard.py` — 비공개 DB(`data/interim/coding.db`)를 읽으므로 화면은 캡처로 대신합니다. 원문이 보이는 검토 탭은 싣지 않았습니다.
+
+**개요**
+![개요: 의견 수·주제 수·일치율·비용](docs/images/dashboard_overview.png)
+
+**법안별 주제 비율** — 회색이 이유 없는 찬반
+![법안별 주제 비율](docs/images/dashboard_topics.png)
+
+**법안별 찬반**
+![법안별 찬반 비율](docs/images/dashboard_stance.png)
+
+**코드북 버전별 일치율과 사람 자기 일치도**
+![코드북 버전별 주제 일치율](docs/images/dashboard_versions.png)
+
+**확신도별 정확도와 혼동표** (새 평가 표본 50건)
+![확신도별 정확도와 주제 혼동표](docs/images/dashboard_confidence.png)
+
 ## 어떻게 했나
 
 | 단계 | 한 일 | 근거 |

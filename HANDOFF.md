@@ -2,7 +2,7 @@
 
 ## 현재 상태 (2026-10-17)
 
-- 1～10단계 끝, 11단계(대시보드·보고서·README) 작업 완료, 브랜치 `report/dashboard` 커밋 전. PR #1～#8 머지
+- 1～11단계 끝. PR #1～#10 머지. 브랜치 `docs/portfolio`(README 화면 캡처, 찬반 막대 높이) 커밋 전
 - 환경: Python 3.14.5 `.venv`, `requirements.txt`. 분류는 **Claude Code 명령줄 `claude -p`(구독 안, 추가 결제 없음) + Sonnet**(의사결정 1016_01). OpenAI 키는 크레딧이 없어 쓰지 않음
 
 | 단계 | 결과 | 근거 문서 |

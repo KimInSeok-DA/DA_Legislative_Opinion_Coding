@@ -97,15 +97,16 @@ def tab_bills(ops):
 
     st.markdown("##### 찬반")
     s = share_table(ops, "찬반")
-    chart = alt.Chart(s).mark_bar(size=26, stroke=SURFACE, strokeWidth=2).encode(
+    chart = alt.Chart(s).mark_bar(height={"band": 0.7}, stroke=SURFACE, strokeWidth=2).encode(
         y=alt.Y("법안:N", sort=BILLS, title=None, axis=alt.Axis(labelLimit=200)),
         x=alt.X("비율:Q", stack="normalize", axis=alt.Axis(format="%", tickCount=5), title=None),
         color=alt.Color("찬반:N", scale=alt.Scale(domain=list(STANCES.values()), range=[BLUE, ORANGE, GRAY]),
                         legend=alt.Legend(orient="top", title=None)),
         order=alt.Order("찬반:N", sort="descending"),
         tooltip=["법안", "찬반", "의견 수", alt.Tooltip("비율:Q", format=".1%")],
-    ).properties(height=4 * 44)
-    st.altair_chart(chart, width="stretch")
+    )
+    # 높이를 st.altair_chart에 직접 줘야 한다(차트 속성만 주면 화면 폭에 맞춰 눌려 법안 이름이 겹쳤다)
+    st.altair_chart(chart, width="stretch", height=4 * 48 + 40)
 
     with st.expander("표로 보기"):
         st.dataframe(share_table(ops, "주제").pivot(index="주제", columns="법안", values="의견 수")
@@ -147,7 +148,7 @@ def tab_quality(human, agree, selfa, llm2):
     s = selfa[selfa.pair == "사람1-사람2"].set_index("measure")
     rows.append({"평가": "사람 자기 일치도(처음 평가용)", "코드북": "v1→v2", "찬반": s.loc["stance", "accuracy"],
                  "주제": s.loc["topic", "accuracy"], "주제 κ": s.loc["topic", "kappa"],
-                 "주제(이유 없는 찬반 뺀 것)": s.loc["topic_excl_no_reason", "accuracy"], "이유 있음·없음": None})
+                 "주제(이유 없는 찬반 뺀 것)": s.loc["topic_excl_no_reason", "accuracy"], "이유 있음·없음": float("nan")})
     summary = pd.DataFrame(rows).set_index("평가")
     st.dataframe(summary.style.format("{:.2f}", subset=list(summary.columns[1:]), na_rep="—"), width="stretch")
 
