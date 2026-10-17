@@ -71,7 +71,7 @@ def tab_overview(ops, agree, runs):
     st.markdown(
         f"- 이유 없이 찬반만 밝힌 의견: **{nr:.0%}** (15자 미만은 모두, 15자 이상에서도 {llm_nr:.0%})\n"
         f"- 이유가 있는 의견에서는 법안마다 주된 주제가 다르다(법안별 결과 탭)\n"
-        f"- LLM이 확신도 '낮음·중간'으로 낸 의견은 {(ops.confidence.isin(['low', 'medium'])).sum():,}건 — 사람이 다시 볼 후보(검토 탭)")
+        f"- LLM이 확신도 '낮음·중간'으로 낸 의견은 {(ops.confidence.isin(['low', 'medium'])).sum():,}건(같은 문안 포함, 서로 다른 문안으로는 {ops[ops.confidence.isin(['low', 'medium'])].drop_duplicates(['BILL_NO', 'text']).shape[0]:,}건) — 사람이 다시 볼 후보(검토 탭)")
     st.caption(SOURCE)
 
 
